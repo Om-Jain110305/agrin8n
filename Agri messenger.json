@@ -1,0 +1,243 @@
+{
+  "name": "Agri messenger",
+  "nodes": [
+    {
+      "parameters": {
+        "from": "+17572084360",
+        "to": "=+91 7355074001",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -144
+      ],
+      "id": "1ec332ec-7b7f-4498-8178-c7e38915fe53",
+      "name": "Send an SMS/MMS/WhatsApp message",
+      "credentials": {
+        "twilioApi": {
+          "id": "3lSlRuJ8PjqZ3196",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=frame it as a short message\n{{ $json.message }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -128,
+        16
+      ],
+      "id": "de350537-fcd5-41cc-9d10-ad73ea611297",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        192
+      ],
+      "id": "56207420-9df4-4bf5-b025-0f4e82c59d9a",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "PSDHOCxDSjOoKYdJ",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1bKcJUiQ60-wuAJ2z9ZOhXPlb4K7i9G58IptW26Zs-HE",
+          "mode": "list",
+          "cachedResultName": "Farmer Notification",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bKcJUiQ60-wuAJ2z9ZOhXPlb4K7i9G58IptW26Zs-HE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bKcJUiQ60-wuAJ2z9ZOhXPlb4K7i9G58IptW26Zs-HE/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -304,
+        16
+      ],
+      "id": "58608bfc-fe18-449f-9fca-4e13b99333d1",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "juh7HCO2UNQaN4gy",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Get row(s) in sheet').item.json.email }}",
+        "subject": "IMPORTANT NOTICE",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        16
+      ],
+      "id": "934c3b38-a583-414c-bcc6-0891dc5b30d7",
+      "name": "Send a message",
+      "webhookId": "2e082258-6f2e-469b-b0b4-305b4eee125f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MFx5LQLdgpDEbxT9",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "a9d2af3a-197e-4127-9c42-4076bba6cf44",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1008,
+        -432
+      ],
+      "id": "4c0ab0c6-baeb-4e83-bd1c-f455248eb1df",
+      "name": "Webhook",
+      "webhookId": "a9d2af3a-197e-4127-9c42-4076bba6cf44"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "to": "=91{{ $('Get row(s) in sheet').item.json['whatsapp no'] }}",
+        "body": "={{ $json.output }}"
+      },
+      "type": "n8n-nodes-whapi.whapi",
+      "typeVersion": 1,
+      "position": [
+        240,
+        208
+      ],
+      "id": "e0a30772-e0ae-4784-a99a-ceeb0ebd0f0a",
+      "name": "Send the message",
+      "credentials": {
+        "whapiChannelApi": {
+          "id": "y9TBpNYKa4D8lk6K",
+          "name": "Whapi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -976,
+        -256
+      ],
+      "id": "ad11e14b-3eba-472c-a012-ec3681f77e52",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send an SMS/MMS/WhatsApp message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send the message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an SMS/MMS/WhatsApp message": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Send the message": {
+      "main": [
+        []
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2b784a95-f80c-4bdb-84e6-b3196d3e7588",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "64b193ae1362dd8d9618e5e7239fbbeefcdd594382348558d931a12c0a097702"
+  },
+  "id": "7eY47WuZG28RkKx8",
+  "tags": []
+}
